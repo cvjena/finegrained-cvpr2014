@@ -1,0 +1,44 @@
+Results
+
+1 -------------------------------------------------------
+
+14 classes, without GrabCut
+
+experimentParts('cub200_2011',14, struct('preprocessing_useMask','none'), struct('useParts','none'))
+
+recognition rate 0.5879
+MAP 0.6157
+
+
+
+2 -------------------------------------------------------
+
+14 classes, default settings
+
+experimentParts('cub200_2011',nrClasses, struct([]), struct([]))
+
+recRate = 0.7889
+mAP = 0.8109
+
+
+was passiert hier???
+
+3 ---------------------------------------------------------
+
+recRate = experimentParts('cub200_2011',nrClasses, struct([]), struct('useParts','nn'))
+
+recRate =
+
+    0.6633
+
+mAP =
+
+    0.6888
+
+4 ----------------------------------------------------------
+
+recRate = experimentParts_knn('cub200_2011',nrClasses, struct([]), struct([]))
+
+0.7889
+
+

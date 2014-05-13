@@ -23,4 +23,5 @@ vl_setup;
 addpath(sets.libraries_liblinear);
 addpath(sets.libraries_yael);
 addpath(sets.libraries_colornames);
+addpath(genpath(sets.libraries_who));
 

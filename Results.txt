@@ -2,7 +2,7 @@ Results
 
 1 -------------------------------------------------------
 
-14 classes, without GrabCut
+14 classes, without GrabCut und ohne die Verwendung von Parts ueberhaupt
 
 experimentParts('cub200_2011',14, struct('preprocessing_useMask','none'), struct('useParts','none'))
 
@@ -22,6 +22,7 @@ mAP = 0.8109
 
 
 was passiert hier???
+Hier hoechstwahrscheinlich GT parts
 
 3 ---------------------------------------------------------
 
@@ -35,10 +36,43 @@ mAP =
 
     0.6888
 
+Hier keine GT parts, Ergebnisse konsistent mit k-NN
+
 4 ----------------------------------------------------------
 
 recRate = experimentParts_knn('cub200_2011',nrClasses, struct([]), struct([]))
 
 0.7889
 
+ABER: hier GT parts!
+
+5 ----------------------------------------------------------
+
+recRate = experimentParts('cub200_2011',nrClasses, struct([]), struct('useParts','nn'))
+
+recRate =
+
+    0.6633
+
+
+mAP =
+
+    0.6888
+
+6 -----------------------------------------------------------
+
+... und das ganze nochmal ohne GrabCut
+
+recRate = experimentParts('cub200_2011',nrClasses, struct('preprocessing_useMask','none'), struct('useParts','nn'))
+
+recRate =
+
+    0.5905
+
+
+mAP =
+
+    0.6627
+
+FAZIT: GrabCut hilft richtig was
 

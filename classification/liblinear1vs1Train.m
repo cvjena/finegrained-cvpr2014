@@ -5,7 +5,7 @@ function svmmodels = liblinear1vs1Train(hists_train, labels_train, config)
 %   addpath([getenv('HOME') '/libs/liblinear-1.91/matlab']);
 
   % check if data is ordered according to the labels in a ascending order,
-  % if not, reorder (todo: modify liblinear to cope with unordered data?)
+  % if not, reorder
   
   [~,sorted_idxs]=sort(labels_train);
   if ~( sum( sorted_idxs' == 1:length(sorted_idxs) ) == length(sorted_idxs))

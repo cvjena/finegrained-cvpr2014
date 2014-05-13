@@ -1,8 +1,7 @@
+% Computes part features for several different feature types
+% Calls extractPartFeaturesRLPooling for each individual feature type
+% Features are extracted using each function from config.featureExtractFuns
 function features = extractMultiplePartFeatures(images_train, labels_train, parts_train, images_test, parts_test, config, vocabs)
-%extractMultiplePartFeatures Computes part features for several different
-%   feature types
-%
-%  Features are extracted using each function from config.featureExtractFuns
 
     if iscell(config.featureExtractFuns{1}) % hack to make the config stuff work
         config.featureExtractFuns = config.featureExtractFuns{1};

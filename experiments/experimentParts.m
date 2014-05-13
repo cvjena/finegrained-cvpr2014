@@ -28,11 +28,18 @@ function recRate = experimentParts(dataset,nrClasses, conf, confPart)
     [partFeatures, time_partFeatures, configParts, confPartDiffString] = experimentGeneral_extractPartFeatures(dataset, nrClasses, resDir, confPart);
     
     [~, labels_train, ~, labels_test ] = getDataset(dataset,'imagenames',nrClasses);
+    
+    % This part is tricky and rarely used:
+    % In case, we did not compute global features for the flipped images,
+    % but we computed part features with flipped images, we need to take
+    % care that we have the same number of examples.
+    % Therefore, we simply copy the global features.
+    % The same holds for the opposite case.
     if strcmp(config.useFlipped,'yes') && ~strcmp(configParts.useFlipped,'yes')
 		for pi = 1:length(partFeatures)
 			partFeatures(pi).hists_train = [partFeatures(pi).hists_train;partFeatures(pi).hists_train];
 		end
-    elseif strcmp(config.useFlipped,'yes') && ~strcmp(configParts.useFlipped,'yes')
+    elseif ~strcmp(config.useFlipped,'yes') && strcmp(configParts.useFlipped,'yes')
 		for pi = 1:length(features)
 			features(pi).hists_train = [features(pi).hists_train;features(pi).hists_train];
 		end
@@ -45,7 +52,7 @@ function recRate = experimentParts(dataset,nrClasses, conf, confPart)
     if ~isempty(features)
         if ~isfield(features,'name')
             features(1).name = '';
-            features(1).vocabulary = []; 
+            features(2).vocabulary = []; 
         end
     end
     
@@ -73,7 +80,9 @@ function recRate = experimentParts(dataset,nrClasses, conf, confPart)
     hists_test = cat(2,features.hists_test);
 
 %     [~, labels_train, ~, labels_test ] = getDataset(dataset,'imagenames',nrClasses);
-    [ recRate, ~, scores, ~] = liblinearTrainTest( hists_train, labels_train, hists_test, labels_test, config );
+    
+        
+    [ recRate, confusionMat, scores, liblinearModel ] = liblinearTrainTest( hists_train, labels_train, hists_test, labels_test, config );
 
 %     splitIdxs = crossvalind(labels_train, 5);
 %     scores_train_crossval = [];

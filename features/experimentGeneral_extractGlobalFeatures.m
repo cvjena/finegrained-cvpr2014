@@ -1,10 +1,14 @@
 function [features, time_features, config, confDiffString] = experimentGeneral_extractGlobalFeatures(dataset,nrClasses, resDir, conf, vocabs)
+    % This function prepares the config and performs the caching for 
+    % finally computing global features
 
+    % Is there a given vocabulary already?
+    % In general, vocab is a set of vocabularies for each config.featureExtractFuns,
+    % e.g., one for extractSiftFeatures and extractColornameFeatures
     if nargin < 5
         vocabs = [];
     end
 
-    % This function extracts global features for a certain dataset
     
     % number of pyramids for spatial pyramid matching
     configDefault.pyramid_levels = 3; 
@@ -70,7 +74,7 @@ function [features, time_features, config, confDiffString] = experimentGeneral_e
         % featureCacheFile = [resDir 'cache_globalGeneralFeatures_w' num2str(config.numWords) '_dict' config.codebookClusterAlgorithm  '_dictcomp' config.codebookCompression num2str(config.codebookCompressionSize) '_descr' config.descriptor '_pca' config.usePCACompression num2str(config.PCACompressionSize) '_flipped' config.useFlipped '.mat'];
 
         if exist(featureCacheFile,'file')
-            fprintf('loading global features from cache file: %s\n', featureCacheFile);
+            fprintf('Loading global features from cache file: %s\n', featureCacheFile);
             load(featureCacheFile,'features','time_features');
         else
             fprintf('The cache file %s does not exist. Start computing features.\n',featureCacheFile);

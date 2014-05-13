@@ -32,9 +32,23 @@ function mask = readMask(imageName, config)
 		end
 
 		if ~exist(maskName,'file')
+      fprintf('re-creating mask: %s %d\n', maskName, exist(maskName, 'file'));
 			bbox = readBbox(imageName,{});
 			im = readImage(imageName,{});
-			mask = grabCutMex(im,[bbox.left bbox.top bbox.right-bbox.left bbox.bottom-bbox.top]);
+      try
+			  mask = grabCutMex(im,[bbox.left bbox.top bbox.right-bbox.left bbox.bottom-bbox.top]);
+      catch exc
+        fprintf('Error in grabCut method, using the bounding box as a fallback solution\n');
+        fprintf('Image filename:\n');
+        disp(imageName);
+        fprintf('Bounding box:\n');
+        disp(bbox);
+        fprintf('Image size:\n');
+        disp(size(im))
+        getReport(exc);
+        mask = zeros(size(im,1),size(im,2));
+        mask((bbox.top+1):bbox.bottom, (bbox.left+1):bbox.right) = 255;
+      end
 			slashpos = strfind(maskName,'/');
 			outputdir = maskName(1:(slashpos(end)-1));
 			if ~exist(outputdir,'dir')

@@ -1,8 +1,11 @@
+% Extracts features given the path to an image
 function [ descrs, frames, imSize ] = extractColornameFeatures( imagename, config )
-%EXTRACTCOLORNAMEFEATURES Extracts features given the path to an image
 
     [im bbox] = readImage(imagename, config);
-    
+    if ~isa(im, 'double')
+      im = double(im);
+    end
+
     imSize = size(im);
 
     start = round(config.colornameFeature_width/2) + 1;

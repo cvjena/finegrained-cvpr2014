@@ -1,20 +1,30 @@
+%
+% Extract a single feature type for a part
+% This is done by changing the preprocessing function, such that a certain part is masked in the image.
+% Caching is handled in experimentGeneral_extractPartFeatures.m
+%
 function [ part_features ] = extractPartFeaturesRLPooling( images_train, parts_train, labels_train, images_test, parts_test, config, vocabs)
-%UNTITLED2 Summary of this function goes here
-%   Detailed explanation goes here
 
     part_names = {'back    ' 'beak    ' 'belly    ' 'breast    ' 'crown    ' 'forehead' 'left eye' 'left leg' 'left wing' 'nape    ' 'right eye' 'right leg' 'right wing' 'tail    ' 'throat    '};
 
-	parts = [];
+    parts = [];
     for pi = [1 2 3 4 5 6 10 14 15]
+        % add new part specification
         parts(end+1).name = [ part_names{pi} ' (' config.featureExtractFun ')'];
-        fprintf('compute features for single part %d (%s)\n',pi,parts(end).name);
+        fprintf('\nCompute features for single part %d (%s)\n\n',pi,parts(end).name);
 
+        % inline function (see below)
+        % that changes config.preprocessFunctionArgs and takes care of corresponding part pairs
         config = prepareConfigForParts(images_train, parts_train, pi, config);
+
+        % check whether we have to learn a new codebook
         if isempty(vocabs)
             [vocabulary] = vlfeatCreateCodebookAib(images_train, labels_train, config);
         else
             vocabulary = vocabs(length(parts)+1);
         end
+        % get the training features, standard BoW or Vlad, depending on the config
+        % (the tag Vlad in the config does not matter at all!)
         [hists_train] = vlfeatFeatureExtractionVlad(images_train, vocabulary, config);
 
         if strcmp(config.useFlipped,'yes')
@@ -25,19 +35,20 @@ function [ part_features ] = extractPartFeaturesRLPooling( images_train, parts_t
         end
 
         
-        
+        % get the testing features
         config = prepareConfigForParts(images_test, parts_test, pi, config);
         [hists_test] = vlfeatFeatureExtractionVlad(images_test, vocabulary, config);
         
+        % add the features
         parts(end).hists_train = hists_train;
         parts(end).hists_test = hists_test;
         parts(end).vocabulary = vocabulary;
     end
     
-    
+    % 'left eye' 'left leg' 'left wing' 
     for pi = [7 8 9]
         parts(end+1).name = [ part_names{pi} ' and ' part_names{pi+4} ' (' config.featureExtractFun ')' ];
-        fprintf('compute features for double part %d (%s)\n',pi,parts(end).name);
+        fprintf('\nCompute features for single part %d (%s)\n\n',pi,parts(end).name);
 
         config = prepareConfigForParts(images_train, parts_train, pi, config);
 
@@ -81,22 +92,29 @@ function [ part_features ] = extractPartFeaturesRLPooling( images_train, parts_t
     part_features = parts;
 end
 
+%
+%
+%
+%
+%
 function config = prepareConfigForParts(images, parts, pi, config)
 
+    % get the proper part indices with left/right version?
     parts_idxs = (pi*2-1):(pi*2);
-        
+    
     if strcmp(config.rotateParts,'yes')
         config.preprocessFunction = @preprocessExtractPatchAtPositionAndRotate;
         part_pairs =  [10     6     4     3     6     5     9    12     7     5    13     8    11    12     6];
-%         part_pairs(:) = 15;
     else
         config.preprocessFunction = @preprocessExtractPatchAtPosition;
         part_pairs = 1:15;
     end
     
+    % get the corresponding part partner
     pi2 = part_pairs(pi);
     parts2_idxs = (pi2*2-1):(pi2*2);
 
+    % set the pre-processing method that takes care of the cropping during feature extraction
     args = {};
     args{1} = images;
     args{2} = [ parts(:,parts_idxs) repmat(config.preprocessing_relativePartSize,size(parts,1),1)];
@@ -104,6 +122,10 @@ function config = prepareConfigForParts(images, parts, pi, config)
     config.preprocessFunctionArgs = args;
 end
 
+%
+% preprocessing method to crop a part out of the image
+%
+%
 function [im, bbox] = preprocessExtractPatchAtPosition(im,bbox,imagename,config)
 
     currentIdx = find(strcmp(config.preprocessFunctionArgs{1},imagename));
@@ -143,7 +165,9 @@ function [im, bbox] = preprocessExtractPatchAtPosition(im,bbox,imagename,config)
     end
 end
 
-
+%
+% preprocessing method to crop a part out of the image and perform some rotation
+% using whatever position information
 function [im, bbox] = preprocessExtractPatchAtPositionAndRotate(im,bbox,imagename,config)
 
     currentIdx = find(strcmp(config.preprocessFunctionArgs{1},imagename));

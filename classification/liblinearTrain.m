@@ -1,11 +1,11 @@
-function svmmodels = liblinearTrain(hists_train, labels_train, config)
-%LIBLINEARTRAIN Summary of this function goes here
-%   Detailed explanation goes here
-%  addpath([getenv('HOME') '/libs/liblinear-1.92-mem/matlab']);
+% Training a model with liblinear and explicit feature transformation
+%
+%   addpath([getenv('HOME') '/libs/liblinear-1.92-mem/matlab']);
 %   addpath([getenv('HOME') '/libs/liblinear-1.91/matlab']);
+function svmmodels = liblinearTrain(hists_train, labels_train, config)
 
   % check if data is ordered according to the labels in a ascending order,
-  % if not, reorder (todo: modify liblinear to cope with unordered data?)
+  % if not, reorder
   
   [~,sorted_idxs]=sort(labels_train);
   if ~( sum( sorted_idxs' == 1:length(sorted_idxs) ) == length(sorted_idxs))
@@ -32,21 +32,25 @@ function svmmodels = liblinearTrain(hists_train, labels_train, config)
 %   end
   
   liblinear_options = sprintf('-q -s 3 -c %f -B 1',config.svm_C);
+  fprintf('liblinear training ...\n');
   svmmodels = train(double(labels_train), sparse(double(hists_train)), liblinear_options, 'col');
-%  svmmodels = liblinearTrainMex(double(labels_train), sparse(double(hists_train)), liblinear_options, 'col');
-%   svmmodels = liblinearTrainMex_dense_float(double(labels_train), ((hists_train)), liblinear_options, 'col');
+% svmmodels = liblinearTrainMex(double(labels_train), sparse(double(hists_train)), liblinear_options, 'col');
+% svmmodels = liblinearTrainMex_dense_float(double(labels_train), ((hists_train)), liblinear_options, 'col');
   
   [a,b,c]=unique(labels_train);
   unique_labels = labels_train(sort(b));
   [~,unique_labels_reverse]=sort(unique_labels);
   svmmodels.unique_labels_reverse = unique_labels_reverse;
-  
-    if isfield(config, 'svm_logisticregression') && config.svm_logisticregression == 1 % use cross validation for this?
-        config.svm_Kernel = 'linear'; % features are already mapped
-        [As Bs]=logisticRegression(hists_train', labels_train, ceil(5*randperm(length(labels_train))/length(labels_train)), @liblinearTrainTest, config);
-        
-        svmmodels.As = As;
-        svmmodels.Bs = Bs;
-    end
+ 
+  %
+  % perform probability calibration
+  %
+  if isfield(config, 'svm_logisticregression') && config.svm_logisticregression == 1 % use cross validation for this?
+      config.svm_Kernel = 'linear'; % features are already mapped
+      [As Bs]=logisticRegression(hists_train', labels_train, ceil(5*randperm(length(labels_train))/length(labels_train)), @liblinearTrainTest, config);
+      
+      svmmodels.As = As;
+      svmmodels.Bs = Bs;
+  end
 end
 
